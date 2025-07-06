@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:netflix_cloning/core/colors/colors.dart';
 import 'package:netflix_cloning/core/constants.dart';
+import 'package:netflix_cloning/presentation/home/widgets/background_card.dart';
 
 import 'package:netflix_cloning/presentation/home/widgets/number_title_card.dart';
 
 import 'package:netflix_cloning/presentation/widgets/main_title_card.dart';
+
+ValueNotifier<bool> scrollNotifier = ValueNotifier(true);
 
 class ScreenHome extends StatelessWidget {
   const ScreenHome({super.key});
@@ -12,71 +16,87 @@ class ScreenHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: ListView(
-          children: [
-            Stack(
+      body: ValueListenableBuilder(
+        valueListenable: scrollNotifier,
+        builder: (BuildContext context, index, _) {
+          return NotificationListener<UserScrollNotification>(
+            onNotification: (notification) {
+              final ScrollDirection direction = notification.direction;
+              print(direction);
+              if (direction == ScrollDirection.reverse) {
+                scrollNotifier.value = true;
+              } else if (direction == ScrollDirection.forward) {
+                scrollNotifier.value = false;
+              }
+              return true;
+            },
+            child: Stack(
               children: [
-                Container(
-                  width: double.infinity,
-                  height: 600,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      fit: BoxFit.cover,
-                      image: NetworkImage(kMainImage),
-                    ),
-                  ),
+                ListView(
+                  children: [
+                    BackgroundCard(),
+                    kHeight,
+                    MainTitleCard(title: "Released in the Past Year"),
+                    kHeight,
+                    MainTitleCard(title: "Trending Now"),
+                    kHeight,
+                    NumberTitleCard(),
+                    kHeight,
+                    MainTitleCard(title: "Tensed Dramas"),
+                    kHeight,
+                    MainTitleCard(title: "South Indian Cinema"),
+                    kHeight,
+                  ],
                 ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [_PlayButton()],
-                  ),
-                ),
+                scrollNotifier.value == true
+                    ? AnimatedContainer(
+                        duration: Duration(milliseconds: 1000),
+                        width: double.infinity,
+                        height: 90,
+                        color: Color.fromRGBO(
+                          0,
+                          0,
+                          0,
+                          0.7,
+                        ), // RGB + 50% opacity
+
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Image.network(
+                                  "https://pngimg.com/uploads/netflix/netflix_PNG22.png",
+                                  width: 60,
+                                  height: 60,
+                                ),
+                                const Spacer(),
+                                Icon(Icons.cast, color: Colors.white, size: 30),
+                                kWidth,
+                                Container(
+                                  width: 30,
+                                  height: 30,
+                                  color: Colors.blue,
+                                ),
+                                kWidth,
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Text("TV Shows", style: kHometitletext),
+                                Text("Movies", style: kHometitletext),
+                                Text("Categories", style: kHometitletext),
+                              ],
+                            ),
+                          ],
+                        ),
+                      )
+                    : kHeight,
               ],
             ),
-            kHeight,
-            MainTitleCard(title: "Released in the Past Year"),
-            kHeight,
-            MainTitleCard(title: "Trending Now"),
-            kHeight,
-            NumberTitleCard(),
-            kHeight,
-            MainTitleCard(title: "Tensed Dramas"),
-            kHeight,
-            MainTitleCard(title: "South Indian Cinema"),
-            kHeight,
-          ],
-        ),
+          );
+        },
       ),
-    );
-  }
-}
-
-class _PlayButton extends StatelessWidget {
-  const _PlayButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return TextButton.icon(
-      onPressed: () {},
-      style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.all(kWhiteColor),
-        shape: WidgetStateProperty.all(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5), // 🔳 No rounded corners
-          ),
-        ),
-      ),
-      label: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 5),
-        child: Text("Play", style: TextStyle(fontSize: 20, color: kBlackColor)),
-      ),
-      icon: Icon(Icons.play_arrow_rounded, size: 35, color: kBlackColor),
     );
   }
 }
